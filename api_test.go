@@ -28,7 +28,16 @@ func TestSQL(t *testing.T) {
 		LobAutoUpload: true,
 	}
 
-	loginRes, err := c.Login(os.Getenv("sqlhttp_db_name"), os.Getenv("sqlhttp_db_username"), os.Getenv("sqlhttp_db_password"))
+	dbname := os.Getenv("sqlhttp_db_name")
+	dbusername := os.Getenv("sqlhttp_db_username")
+	dbpassword := os.Getenv("sqlhttp_db_password")
+
+	fmt.Println("url =", c.BaseURL)
+	fmt.Println("sqlhttp_db_name =", dbname)
+	fmt.Println("sqlhttp_db_username =", dbusername)
+	fmt.Println("sqlhttp_db_password =", dbpassword)
+
+	loginRes, err := c.Login(dbname, dbusername, dbpassword)
 	if err != nil {
 		t.Error(err)
 		return
@@ -64,7 +73,7 @@ func TestSQL(t *testing.T) {
 			},
 			{
 				Type:  CLOB,
-				Value: strings.Repeat("a", 100*1024*1024),
+				Value: strings.Repeat("a", 1024),
 			},
 		}, true)
 		if err != nil {

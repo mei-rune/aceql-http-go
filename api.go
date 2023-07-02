@@ -251,7 +251,7 @@ func (c *Client) SetNamedSavepoint(sess *Session, name string) (*SavepointResult
 
 	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/set_named_savepoint", nil)
 
-	var params url.Values
+	var params = url.Values{}
 	params.Set("name", name)
 
 	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(params.Encode()))
@@ -273,7 +273,7 @@ func (c *Client) SetNamedSavepoint(sess *Session, name string) (*SavepointResult
 func (c *Client) RollbackSavepoint(sess *Session, id int, name string) error {
 	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/rollback_savepoint", nil)
 
-	var params url.Values
+	var params = url.Values{}
 	if id > 0 {
 		params.Set("id", strconv.FormatInt(int64(id), 10))
 	}
@@ -308,7 +308,7 @@ func (c *Client) RollbackSavepoint(sess *Session, id int, name string) error {
 func (c *Client) ReleaseSavepoint(sess *Session, id int, name string) error {
 	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/release_savepoint", nil)
 
-	var params url.Values
+	var params = url.Values{}
 	if id > 0 {
 		params.Set("id", strconv.FormatInt(int64(id), 10))
 	}

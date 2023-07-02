@@ -55,6 +55,12 @@ type UpdateResult struct {
 	RowCount int    `json:"row_count"`
 }
 
+type SavepointResult struct {
+	Status   string `json:"status"`
+	ID       int    `json:"id"`
+	Name     string    `json:"name"`
+} 
+
 const (
 	BIGINT           = "BIGINT"
 	BINARY           = "BINARY"
@@ -224,6 +230,115 @@ func (c *Client) Login(database, username, password string) (*LoginResult, error
 	}
 	return &result, nil
 }
+
+// /aceql/session/{session_id}/connection/{connection_id}/set_savepoint
+func (c *Client) SetSavepoint(sess *Session) (*SavepointResult, error) {
+	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/set_savepoint", nil)
+
+	var result SavepointResult
+	err := c.httpGet(u, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// /aceql/session/{session_id}/connection/{connection_id}/set_named_savepoint
+func (c *Client) SetNamedSavepoint(sess *Session, name string) (*SavepointResult, error) {
+	if name == "" {
+		return nil, errors.New("savepoint name is missing")
+	}
+
+	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/set_named_savepoint", nil)
+
+	var params url.Values
+	params.Set("name", name)
+
+	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(params.Encode()))
+	if err != nil {
+		return nil, errors.New("new request: " + err.Error())
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	var result SavepointResult
+	err = c.httpDo(req, &result)
+	if err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// /aceql/session/{session_id}/connection/{connection_id}/rollback_savepoint
+func (c *Client) RollbackSavepoint(sess *Session, id int, name string) error {
+	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/rollback_savepoint", nil)
+
+	var params url.Values
+	if id > 0 {
+		params.Set("id", strconv.FormatInt(int64(id), 10))
+	}
+	if name != "" {
+		params.Set("name", name)
+	}
+	if len(params) == 0 {
+		return errors.New("savepoint id or name is missing")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(params.Encode()))
+	if err != nil {
+		return errors.New("new request: " + err.Error())
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	var result struct {
+		Status string `json:"status"`
+	}
+	err = c.httpDo(req, &result)
+	if err != nil {
+		return err
+	}
+	if result.Status == OK {
+		return nil
+	}
+	return errors.New(result.Status)
+}
+
+// /aceql/session/{session_id}/connection/{connection_id}/release_savepoint
+func (c *Client) ReleaseSavepoint(sess *Session, id int, name string) error {
+	u := c.CreateURL("session/"+sess.SessionID+"/connection/"+sess.ConnectionID+"/release_savepoint", nil)
+
+	var params url.Values
+	if id > 0 {
+		params.Set("id", strconv.FormatInt(int64(id), 10))
+	}
+	if name != "" {
+		params.Set("name", name)
+	}
+	if len(params) == 0 {
+		return errors.New("savepoint id or name is missing")
+	}
+
+	req, err := http.NewRequest(http.MethodPost, u, strings.NewReader(params.Encode()))
+	if err != nil {
+		return errors.New("new request: " + err.Error())
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Accept", "application/json")
+
+	var result struct {
+		Status string `json:"status"`
+	}
+	err = c.httpDo(req, &result)
+	if err != nil {
+		return err
+	}
+	if result.Status == OK {
+		return nil
+	}
+	return errors.New(result.Status)
+}
+
 
 // /aceql/session/{session_id}/connection/{connection_id}/execute_update
 func (c *Client) ExecuteUpdate(sess *Session, sql string, args []ParamValue, preparedStatement bool) (int, error) {

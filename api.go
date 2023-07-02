@@ -617,3 +617,7 @@ func ToResponseError(response *http.Response) *ErrorResult {
 	}
 	return &result
 }
+
+func IsInvalidOrExipredConnection(err error) bool {
+	return strings.Contains(err.Error(), "Invalid or exipred Connection")
+}

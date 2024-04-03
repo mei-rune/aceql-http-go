@@ -619,5 +619,6 @@ func ToResponseError(response *http.Response) *ErrorResult {
 }
 
 func IsInvalidOrExipredConnection(err error) bool {
-	return strings.Contains(err.Error(), "Invalid or exipred Connection")
+	return strings.Contains(err.Error(), "Invalid or exipred Connection") ||
+				strings.Contains(err.Error(), "Invalid session_id")
 }
